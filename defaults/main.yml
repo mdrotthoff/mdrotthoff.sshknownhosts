@@ -1,2 +1,11 @@
 ---
 # defaults file for mdrotthoff.sshknownhosts
+sshknownhosts_include_aliases:        true
+sshknownhosts_include_ipv4_addresses: true
+sshknownhosts_include_ipv6_addresses: true
+sshknownhosts_key_state:              'present'
+sshknownhosts_file_path:              'facts'
+sshknownhosts_file_name:              'known_hosts'
+sshknownhosts_file_owner:             'mdrotthoff'
+sshknownhosts_file_group:             'ansible'
+sshknownhosts_file_mode:              '0664'

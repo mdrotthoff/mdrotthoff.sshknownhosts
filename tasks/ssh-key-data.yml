@@ -1,0 +1,39 @@
+---
+# $Author$
+# $Date$
+# $Source$
+
+# ssh-key-data tasks file for mdrotthoff.gather-facts
+
+- name: Display the enter ssh-facts.yml message
+  debug:
+    msg: 'Enter ssh-facts.yml'
+  tags:
+  - debug
+  - never
+
+- name:  Scan and register the host ssh keys
+  command:      "ssh-keyscan {{ ansible_fqdn }}"
+  register:     sshknownhosts_key_output
+  changed_when: false
+  connection:   local
+  check_mode:   false
+
+- name: Collect the SSH keys found
+  set_fact:
+    sshknownhosts_key_data: "{{ sshknownhosts_key_data | default([]) + [ {'enctype': item.split(' ')[1], 'fingerprint': item.split(' ')[2]} ] }}"
+  loop: "{{ sshknownhosts_key_output.stdout_lines }}"
+
+- name: Display the ssh keys gathered
+  debug:
+    var: sshknownhosts_key_data
+  tags:
+  - debug
+  - never
+
+- name: Display the exit ssh-facts.yml message
+  debug:
+    msg: 'Exit ssh-facts.yml'
+  tags:
+  - debug
+  - never

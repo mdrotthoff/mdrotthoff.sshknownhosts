@@ -1,0 +1,42 @@
+---
+# $Author$
+# $Date$
+# $Source$
+
+# output-known-hosts tasks file for mdrotthoff.sshknownhosts
+- name: Display the enter output-known-hosts.yml message
+  debug:
+    msg: 'Enter output-known-hosts.yml'
+  connection:  local
+  tags:
+  - debug
+  - never
+
+- name: Output the created SSH known host line
+  debug:
+    msg: "{{ ([ ssh_hostname ] + ssh_aliases) | join(',') if ssh_aliases is defined else ssh_hostnamename }} {{ inner_item.enctype }} {{ inner_item.fingerprint }}"
+  loop: "{{ ssh_keys | sort }}"
+  loop_control:
+    loop_var: inner_item
+  tags:
+  - debug
+  - never
+
+- name: Add lines for specified fingerprints
+  lineinfile:
+    dest:     "{{ sshknownhosts_file_path }}/{{ sshknownhosts_file_name }}"
+    regexp:   "^{{ ssh_hostname }}.* {{ inner_item.enctype }}"
+    line:     "{{ ([ ssh_hostname ] + ssh_aliases) | join(',') if ssh_aliases is defined else ssh_hostnamename }} {{ inner_item.enctype }} {{ inner_item.fingerprint }}"
+    state:    'present'
+  loop:       "{{ ssh_keys | sort }}"
+  loop_control:
+    loop_var: inner_item
+  connection: local
+
+- name: Display the exit output-known-hosts.yml message
+  debug:
+    msg: 'Exit output-known-hosts.yml'
+  connection:  local
+  tags:
+  - debug
+  - never

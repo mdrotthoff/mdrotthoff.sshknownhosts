@@ -1,2 +1,130 @@
 ---
-# tasks file for mdrotthoff.sshknownhosts
+# $Author$
+# $Date$
+# $Source$
+
+# main tasks file for mdrotthoff.sshknownhosts
+- name: Display the enter main.yml message
+  debug:
+    msg: 'Enter main.yml'
+  connection:  local
+  tags:
+  - debug
+  - never
+
+- name: Debug the setup if requested
+  include_tasks: debug-setup.yml
+  tags:
+  - debug
+  - never
+
+- name: Ensure the target file exists
+  include_tasks: create-output-file.yml
+  run_once:      true
+  tags:
+  - sshknownhosts
+
+#- name: Ensure the known host directory exists
+#  file:
+#    path:      "{{ sshknownhosts_file_path }}"
+#    state:     directory
+#    recurse:   true
+#  connection:  local
+#  tags:
+#  - sshknownhosts
+
+#- name: Ensure the known host file exists
+#  copy:
+#    content:   ""
+#    dest:      "{{ sshknownhosts_file_path }}/{{ sshknownhosts_file_name }}"
+#    force:     no
+#  connection:  local
+#  tags:
+#  - sshknownhosts
+
+#- name: Ensure the known host file ownership and permissions are correct
+#  file:
+#    path:      "{{ sshknownhosts_file_path }}/{{ sshknownhosts_file_name }}"
+#    state:     file
+#    owner:     "{{ sshknownhosts_file_owner | default(omit) }}"
+#    group:     "{{ sshknownhosts_file_group | default(omit) }}"
+#    mode:      "{{ sshknownhosts_file_mode | default(omit) }}"
+#  connection:  local
+#  tags:
+#  - sshknownhosts
+
+- name: Set the host named to be used for the entry
+  set_fact:
+    sshknownhosts_hostname: "{{ ssh_key_data.hostname | default(inventory_hostname) }}"
+  connection:  local
+  tags:
+  - sshknownhosts
+
+- name: Add specified aliases to the host alias list if requested
+  set_fact:
+    sshknownhosts_aliases: "{{ ssh_key_data.host_aliases | default([]) }}"
+  connection:  local
+  when:
+  - sshknownhosts_include_aliases is defined
+  - sshknownhosts_include_aliases
+  tags:
+  - sshknownhosts
+
+- name: Add IPv4 address to the host alias list if requested
+  set_fact:
+    sshknownhosts_aliases: "{{ sshknownhosts_aliases | default([]) }} + {{ ssh_key_data.ipv4_addresses | default(ansible_all_ipv4_addresses) | default([]) }}"
+  connection:  local
+  when:
+  - sshknownhosts_include_ipv4_addresses is defined
+  - sshknownhosts_include_ipv4_addresses
+  tags:
+  - sshknownhosts
+
+- name: Add IPv6 address to the host alias list if requested
+  set_fact:
+    sshknownhosts_aliases: "{{ sshknownhosts_aliases | default([]) }} + {{ ssh_key_data.ipv6_addresses | default(ansible_all_ipv6_addresses) | default([]) }}"
+  connection:  local
+  when:
+  - sshknownhosts_include_ipv6_addresses is defined
+  - sshknownhosts_include_ipv6_addresses
+  tags:
+  - sshknownhosts
+
+- name: Gather the SSH keys if not supplied
+  block:
+  - name: Collect the supplied SSH key facts
+    set_fact:
+      sshknownhosts_key_data: "{{ ssh_key_data.key_data }}"
+    connection:  local
+  rescue:
+  - name: Calculate the SSH keys that were not supplied
+    include_tasks: ssh-key-data.yml
+  tags:
+  - sshknownhosts
+
+- name: Debug the lineinfile variables if requested
+  include_tasks: debug-lineinfile.yml
+  tags:
+  - debug
+  - never
+
+- name: Add lines for specified fingerprints
+  include_tasks: output-known-hosts.yml
+  vars:
+  -  ssh_hostname: "{{ hostvars[outer_item].sshknownhosts_hostname }}"
+  -  ssh_aliases:  "{{ hostvars[outer_item].sshknownhosts_aliases }}"
+  -  ssh_keys:     "{{ hostvars[outer_item].sshknownhosts_key_data }}"
+  loop: "{{ ansible_play_batch }}"
+  loop_control:
+    loop_var: outer_item
+  run_once: true
+  tags:
+  - sshknownhosts
+
+- name: Display the exit main.yml message
+  debug:
+    msg: 'Exit main.yml'
+  connection:  local
+  tags:
+  - debug
+  - never

@@ -1,0 +1,48 @@
+---
+# $Author$
+# $Date$
+# $Source$
+
+# debug-lineinfile tasks file for mdrotthoff.sshknownhosts
+- name: Display the enter debug-lineinfile.yml message
+  debug:
+    msg: 'Enter debug-lineinfile.yml'
+  tags:
+  - debug
+  - never
+
+- name: Dump the associated ssh_key_data structure
+  debug:
+    msg: "{{ ssh_key_data }}"
+
+- name: Display the sshknownhosts_hostname
+  debug:
+    msg: "sshknownhosts hostname: {{ sshknownhosts_hostname }}"
+
+- name: Display the sshknownhosts_aliases
+  debug:
+    msg: "sshknownhosts_aliases: {{ sshknownhosts_aliases | default([]) }}"
+
+- name: Display the sshknownhosts_key_data
+  debug:
+    msg: "enctype: {{ item.enctype }}  fingerprint: {{ item.fingerprint }}"
+  with_items:
+  - "{{ sshknownhosts_key_data | default([]) }}"
+
+- name: Display the line for the known_hosts file
+  debug:
+    msg: "{{ ([ sshknownhosts_hostname ] + sshknownhosts_aliases) | join(',') if sshknownhosts_aliases is defined else sshknownhosts_name }} {{ item.enctype }} {{ item.fingerprint }}"
+  with_items: "{{ sshknownhosts_key_data }}"
+
+- name: Cycle through the hosts in the current group
+  debug:
+    msg: "Current data: {{ hostvars[item].sshknownhosts_hostname }} {{ hostvars[item].sshknownhosts_aliases }} {{ hostvars[item].sshknownhosts_key_data }}"
+  loop: "{{ ansible_play_batch }}"
+  run_once: true
+
+- name: Display the exit debug-lineinfile.yml message
+  debug:
+    msg: 'Exit debug-lineinfile.yml'
+  tags:
+  - debug
+  - never

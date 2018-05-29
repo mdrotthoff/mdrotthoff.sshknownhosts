@@ -1,0 +1,63 @@
+---
+# $Author$
+# $Date$
+# $Source$
+
+# debug-setup tasks file for mdrotthoff.sshknownhosts
+- name: Display the enter debug-setup.yml message
+  debug:
+    msg: 'Enter debug-setup.yml'
+  tags:
+  - debug
+  - never
+
+- name: Dump the associated ssh_key_data structure
+  debug:
+    var: vars
+
+- name: Dump the associated ssh_key_data structure
+  debug:
+    msg: "{{ ssh_key_data }}"
+
+- name: Display whether or not aliases should be included
+  debug:
+    msg: "include aliases: {{ sshknownhosts_include_aliases }}"
+
+- name: Display whether or not IPv4 addresses should be included
+  debug:
+    msg: "include IPv4 addresses: {{ sshknownhosts_include_ipv4_addresses }}"
+
+- name: Display whether or not IPv6 addresses should be included
+  debug:
+    msg: "include IPv6 addresses: {{ sshknownhosts_include_ipv6_addresses }}"
+
+- name: Display whether the known hosts entry should exist
+  debug:
+    msg: "Known host entry state: {{ sshknownhosts_key_state }}"
+
+- name: Display the known hosts file path
+  debug:
+    msg: "Known host entry state: {{ sshknownhosts_file_path }}"
+
+- name: Display the known hosts file name
+  debug:
+    msg: "Known host entry state: {{ sshknownhosts_file_name }}"
+
+- name: Display the known hosts file owner
+  debug:
+    msg: "Known host file owner: {{ sshknownhosts_file_owner | default('omit') }}"
+
+- name: Display the known hosts file group
+  debug:
+    msg: "Known host file group: {{ sshknownhosts_file_group | default('omit') }}"
+
+- name: Display the known hosts file mode
+  debug:
+    msg: "Known host file group: {{ sshknownhosts_file_mode | default('omit') }}"
+
+- name: Display the exit debug-setup.yml message
+  debug:
+    msg: 'Exit debug-setup.yml'
+  tags:
+  - debug
+  - never
