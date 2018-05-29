@@ -20,38 +20,8 @@
 
 - name: Ensure the target file exists
   include_tasks: create-output-file.yml
-  run_once:      true
   tags:
   - sshknownhosts
-
-#- name: Ensure the known host directory exists
-#  file:
-#    path:      "{{ sshknownhosts_file_path }}"
-#    state:     directory
-#    recurse:   true
-#  connection:  local
-#  tags:
-#  - sshknownhosts
-
-#- name: Ensure the known host file exists
-#  copy:
-#    content:   ""
-#    dest:      "{{ sshknownhosts_file_path }}/{{ sshknownhosts_file_name }}"
-#    force:     no
-#  connection:  local
-#  tags:
-#  - sshknownhosts
-
-#- name: Ensure the known host file ownership and permissions are correct
-#  file:
-#    path:      "{{ sshknownhosts_file_path }}/{{ sshknownhosts_file_name }}"
-#    state:     file
-#    owner:     "{{ sshknownhosts_file_owner | default(omit) }}"
-#    group:     "{{ sshknownhosts_file_group | default(omit) }}"
-#    mode:      "{{ sshknownhosts_file_mode | default(omit) }}"
-#  connection:  local
-#  tags:
-#  - sshknownhosts
 
 - name: Set the host named to be used for the entry
   set_fact:
@@ -90,7 +60,7 @@
   tags:
   - sshknownhosts
 
-- name: Gather the SSH keys if not supplied
+- name: Gather the SSH key types and fingerprints
   block:
   - name: Collect the supplied SSH key facts
     set_fact:
@@ -108,12 +78,22 @@
   - debug
   - never
 
-- name: Add lines for specified fingerprints
+- name: Display the host variables
+  debug:
+    msg: 'Host: {{ item }}  Host vars: {{ hostvars[item] | to_nice_yaml }}'
+  loop: "{{ ansible_play_batch }}"
+  connection:  local
+#  tags:
+#  - debug
+#  - never
+
+- name: Process each hosts SSH key data
   include_tasks: output-known-hosts.yml
   vars:
-  -  ssh_hostname: "{{ hostvars[outer_item].sshknownhosts_hostname }}"
-  -  ssh_aliases:  "{{ hostvars[outer_item].sshknownhosts_aliases }}"
-  -  ssh_keys:     "{{ hostvars[outer_item].sshknownhosts_key_data }}"
+  -  ssh_hostname:  "{{ hostvars[outer_item].sshknownhosts_hostname }}"
+  -  ssh_aliases:   "{{ hostvars[outer_item].sshknownhosts_aliases }}"
+  -  ssh_keys:      "{{ hostvars[outer_item].sshknownhosts_key_data }}"
+  -  ssh_key_state: "{{ hostvars[outer_item].sshknownhosts_key_state }}"
   loop: "{{ ansible_play_batch }}"
   loop_control:
     loop_var: outer_item

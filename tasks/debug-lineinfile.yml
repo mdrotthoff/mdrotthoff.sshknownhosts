@@ -13,6 +13,10 @@
 
 - name: Dump the associated ssh_key_data structure
   debug:
+    var: vars
+
+- name: Dump the associated ssh_key_data structure
+  debug:
     msg: "{{ ssh_key_data }}"
 
 - name: Display the sshknownhosts_hostname
