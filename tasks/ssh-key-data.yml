@@ -24,6 +24,11 @@
     sshknownhosts_key_data: "{{ sshknownhosts_key_data | default([]) + [ {'enctype': item.split(' ')[1], 'fingerprint': item.split(' ')[2]} ] }}"
   loop: "{{ sshknownhosts_key_output.stdout_lines }}"
 
+- name: Set a default alias of the host short name
+  set_fact:
+    sshknownhosts_aliases: "[ {{ ansible_hostname | default([]) }}"
+  when: ansible_fqdn != ansible_hostname
+
 - name: Display the ssh keys gathered
   debug:
     var: sshknownhosts_key_data
