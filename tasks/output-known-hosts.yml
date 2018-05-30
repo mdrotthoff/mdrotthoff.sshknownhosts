@@ -35,7 +35,7 @@
     dest:     "{{ sshknownhosts_file_path }}/{{ sshknownhosts_file_name }}"
     regexp:   "^{{ ssh_hostname }}.* {{ inner_item.enctype }}"
     line:     "{{ ([ ssh_hostname ] + ssh_aliases) | join(',') if ssh_aliases is defined else ssh_hostnamename }} {{ inner_item.enctype }} {{ inner_item.fingerprint }}"
-    state:    "{{ ssh_key_state }}"
+    state:    'present'
   loop:       "{{ ssh_keys | sort }}"
   loop_control:
     loop_var: inner_item

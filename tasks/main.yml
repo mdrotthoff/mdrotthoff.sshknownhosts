@@ -93,13 +93,13 @@
   -  ssh_hostname:  "{{ hostvars[outer_item].sshknownhosts_hostname }}"
   -  ssh_aliases:   "{{ hostvars[outer_item].sshknownhosts_aliases }}"
   -  ssh_keys:      "{{ hostvars[outer_item].sshknownhosts_key_data }}"
-  -  ssh_key_state: "{{ hostvars[outer_item].sshknownhosts_key_state }}"
   loop: "{{ ansible_play_batch }}"
   loop_control:
     loop_var: outer_item
   run_once: true
   tags:
   - sshknownhosts
+#  -  ssh_key_state: "{{ hostvars[outer_item].sshknownhosts_key_state }}"
 
 - name: Display the exit main.yml message
   debug:
