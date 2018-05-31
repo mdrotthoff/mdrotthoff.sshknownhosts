@@ -4,13 +4,6 @@
 # $Source$
 
 # main tasks file for mdrotthoff.sshknownhosts
-- name: Display the enter main.yml message
-  debug:
-    msg: 'Enter main.yml'
-  connection:  local
-  tags:
-  - debug
-  - never
 
 - name: Debug the setup if requested
   include_tasks: debug-setup.yml
@@ -23,6 +16,12 @@
   tags:
   - sshknownhosts
 
+- name: Define variable ssh_key_data if not defined
+  set_fact:
+    ssh_key_data: ''
+  when:
+  - ssh_key_data is not defined
+
 - name: Set the host named to be used for the entry
   set_fact:
     sshknownhosts_hostname: "{{ ssh_key_data.hostname | default(inventory_hostname) }}"
@@ -32,17 +31,28 @@
 
 - name: Add specified aliases to the host alias list if requested
   set_fact:
-    sshknownhosts_aliases: "{{ ssh_key_data.host_aliases | default([]) }}"
+    sshknownhosts_aliases: "{{ ssh_key_data.host_aliases }}"
   connection:  local
   when:
   - sshknownhosts_include_aliases is defined
   - sshknownhosts_include_aliases
+  - ssh_key_data.host_aliases is defined
+  tags:
+  - sshknownhosts
+
+- name: Add system the short host if no aliases were requested
+  set_fact:
+    sshknownhosts_aliases: "{{ [ ansible_hostname ] }}"
+  connection:  local
+  when:
+  - sshknownhosts_aliases is not defined
+  - ansible_hostname != inventory_hostname
   tags:
   - sshknownhosts
 
 - name: Add IPv4 address to the host alias list if requested
   set_fact:
-    sshknownhosts_aliases: "{{ sshknownhosts_aliases | default([]) }} + {{ ssh_key_data.ipv4_addresses | default(ansible_all_ipv4_addresses) | default([]) }}"
+    sshknownhosts_aliases: "{{ sshknownhosts_aliases | default([]) }} + {{ ssh_key_data.ipv4_addresses | default( ansible_all_ipv4_addresses) }}"
   connection:  local
   when:
   - sshknownhosts_include_ipv4_addresses is defined
@@ -52,7 +62,7 @@
 
 - name: Add IPv6 address to the host alias list if requested
   set_fact:
-    sshknownhosts_aliases: "{{ sshknownhosts_aliases | default([]) }} + {{ ssh_key_data.ipv6_addresses | default(ansible_all_ipv6_addresses) | default([]) }}"
+    sshknownhosts_aliases: "{{ sshknownhosts_aliases | default([]) }} + {{ ssh_key_data.ipv6_addresses | default( ansible_all_ipv6_addresses ) }}"
   connection:  local
   when:
   - sshknownhosts_include_ipv6_addresses is defined
@@ -60,15 +70,25 @@
   tags:
   - sshknownhosts
 
-- name: Gather the SSH key types and fingerprints
-  block:
-  - name: Collect the supplied SSH key facts
-    set_fact:
-      sshknownhosts_key_data: "{{ ssh_key_data.key_data }}"
-    connection:  local
-  rescue:
-  - name: Calculate the SSH keys that were not supplied
-    include_tasks: ssh-key-data.yml
+- name: Collect the supplied SSH key facts
+  set_fact:
+    sshknownhosts_key_data: "{{ ssh_key_data.key_data }}"
+  connection:  local
+  when:
+  - ssh_key_data is defined
+  - ssh_key_data.key_data is defined
+
+- name: Calculate the SSH keys that were not supplied
+  include_tasks: ssh-key-data.yml
+  when:
+  - sshknownhosts_key_data is not defined
+  tags:
+  - sshknownhosts
+
+- name: Determine the desired key state
+  set_fact:
+    sshknownhosts_key_state: "{{ ssh_key_data.key_state | default( 'present' ) }}"
+  connection:  local
   tags:
   - sshknownhosts
 
@@ -78,14 +98,25 @@
   - debug
   - never
 
+- name: Display the batch host name
+  debug:
+    msg: 'Host: {{ item }}'
+  loop: "{{ ansible_play_batch }}"
+  connection:  local
+  run_once: true
+#  tags:
+#  - debug
+#  - never
+
 - name: Display the host variables
   debug:
     msg: 'Host: {{ item }}  Host vars: {{ hostvars[item] | to_nice_yaml }}'
   loop: "{{ ansible_play_batch }}"
   connection:  local
-#  tags:
-#  - debug
-#  - never
+  run_once: true
+  tags:
+  - debug
+  - never
 
 - name: Process each hosts SSH key data
   include_tasks: output-known-hosts.yml
@@ -93,12 +124,14 @@
   -  ssh_hostname:  "{{ hostvars[outer_item].sshknownhosts_hostname }}"
   -  ssh_aliases:   "{{ hostvars[outer_item].sshknownhosts_aliases }}"
   -  ssh_keys:      "{{ hostvars[outer_item].sshknownhosts_key_data }}"
+  -  ssh_key_state: "{{ hostvars[outer_item].sshknownhosts_key_state }}"
   loop: "{{ ansible_play_batch }}"
   loop_control:
     loop_var: outer_item
   run_once: true
   tags:
   - sshknownhosts
+#  -  ssh_key_state: 'present'
 #  -  ssh_key_state: "{{ hostvars[outer_item].sshknownhosts_key_state }}"
 
 - name: Display the exit main.yml message
