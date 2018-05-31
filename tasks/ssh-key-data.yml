@@ -13,7 +13,7 @@
   - never
 
 - name:  Scan and register the host ssh keys
-  command:      "ssh-keyscan {{ ansible_fqdn }}"
+  command:      "ssh-keyscan {{ inventory_hostname }}"
   register:     sshknownhosts_key_output
   changed_when: false
   connection:   local
