@@ -32,12 +32,13 @@
 
 - name: Ensure the known host file ownership and permissions are correct
   file:
-    path:      "{{ sshknownhosts_file_path }}/{{ sshknownhosts_file_name }}"
-    state:     file
-    owner:     "{{ sshknownhosts_file_owner | default(omit) }}"
-    group:     "{{ sshknownhosts_file_group | default(omit) }}"
-    mode:      "{{ sshknownhosts_file_mode | default(omit) }}"
-  connection:  local
+    path:        "{{ sshknownhosts_file_path }}/{{ sshknownhosts_file_name }}"
+    state:       file
+    owner:       "{{ sshknownhosts_file_owner | default(omit) }}"
+    group:       "{{ sshknownhosts_file_group | default(omit) }}"
+    mode:        "{{ sshknownhosts_file_mode | default(omit) }}"
+  ignore_errors: "{{ ansible_check_mode }}"
+  connection: local
   tags:
   - sshknownhosts
 
