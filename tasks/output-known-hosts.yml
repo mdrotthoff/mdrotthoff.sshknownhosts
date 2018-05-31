@@ -40,6 +40,7 @@
   loop_control:
     loop_var: inner_item
   connection: local
+  ignore_errors: "{{ ansible_check_mode }}"
 
 - name: Display the exit output-known-hosts.yml message
   debug:
