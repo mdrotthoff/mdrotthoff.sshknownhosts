@@ -14,7 +14,7 @@
 
 - name: Display the variable ssh_key_state
   debug:
-    msg: 'ssh_key_state: {{ ssh_key_state }}'
+    msg: 'ssh_key_state: {{ ssh_key_state }} host: {{ ssh_hostname }}'
   connection:  local
 #  tags:
 #  - debug
