@@ -5,6 +5,22 @@
 
 # main tasks file for mdrotthoff.sshknownhosts
 
+- name: Display the enter main.yml message
+  debug:
+    msg: 'Enter main.yml'
+  connection:  local
+  tags:
+  - debug
+  - never
+
+- name: Display Ansible check mod
+  debug:
+    msg: 'Check mode: {{ ansible_check_mode }}'
+  connection:  local
+#  tags:
+#  - debug
+#  - never
+
 - name: Debug the setup if requested
   include_tasks: debug-setup.yml
   tags:
